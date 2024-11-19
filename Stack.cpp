@@ -241,7 +241,12 @@ Stack<T>& Stack<T>::operator=(const Stack& other){
 // Preconditions: None
 // Postconditions: Adds a new node to the top of the stack
 template <typename T>
-void Stack<T>::Push(const T& value){}
+void Stack<T>::Push(const T& value){
+  Node<T>* newNode = new Node<T>(value); //create new node
+  newNode->SetNext(m_top); //insert it at the top
+  m_top = newNode; //reassign the new top of the stack
+  m_size++; //increment size
+}
 
 // Name: Pop
 // Description: If stack is empty, throw runtime_error("Stack is empty");
@@ -250,7 +255,20 @@ void Stack<T>::Push(const T& value){}
 // Preconditions: Stack has at least one node
 // Postconditions: See description
 template <typename T>
-T Stack<T>::Pop(){}
+T Stack<T>::Pop(){
+  T data;
+  if (m_top == nullptr){ //If empty error
+    throw runtime_error("Stack is empty.");
+  }
+  else{
+    Node<T>* temp = m_top;
+    data = temp->GetData(); //store data at the top of the stack
+    m_top = m_top->GetNext(); //move top ptr down one (which will be the top node after deletion)
+    delete temp; //delete the top node
+    temp = nullptr; //free temp
+  }
+  return data;
+}
 
 // Name: Peek
 // Description: If stack is empty, throw runtime_error("Stack is empty");
