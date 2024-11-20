@@ -276,7 +276,12 @@ T Stack<T>::Pop(){
 // Preconditions: Stack has at least one node
 // Postconditions: See description
 template <typename T>
-T Stack<T>::Peek() const{}
+T Stack<T>::Peek() const{
+  if (m_top == nullptr){
+    throw runtime_error("Stack is empty");
+  }
+  return m_top->GetData();
+}
   
 // Name: At
 // Description: If stack is empty, throw runtime_error("Stack is empty")
@@ -285,14 +290,23 @@ T Stack<T>::Peek() const{}
 // Preconditions: Stack has at least one node
 // Postconditions: Returns data from number of node starting at m_top
 template <typename T>
-T Stack<T>::At(int num){}
+T Stack<T>::At(int num){
+  if (m_top == nullptr){ //if empty
+    throw runtime_error("Stack is empty");
+  }
+  Node<T>* curr = m_top;
+  for (int i = 0; i < num; i++){ //iterate unitl we get to index num
+    curr = curr->GetNext(); //go one down the stack
+  }
+  return curr->GetData();
+}
 
 // Name: IsEmpty
 // Description: Returns if the stack has any nodes.
 // Preconditions: Stack has at least one node
 // Postconditions: If stack has no nodes, returns true. Else false.
 template <typename T>
-bool Stack<T>::IsEmpty() const{}
+bool Stack<T>::IsEmpty() const{return m_top == nullptr;}
 
 // Name: RemoveBottom
 // Description: If stack is empty, throw runtime_error("Stack is empty")
@@ -302,7 +316,30 @@ bool Stack<T>::IsEmpty() const{}
 // Preconditions: Stack has at least one node
 // Postconditions: Removes node from bottom of stack and returns data
 template <typename T>
-T Stack<T>::RemoveBottom(){}
+T Stack<T>::RemoveBottom(){
+  T data; //varaible to store deleted data
+  if (m_top == nullptr){ //if empty
+    throw runtime_error("Stack is empty");
+  }
+  else if(m_top->GetNext() == nullptr){ //if theres only 1 node in the stack
+    data = m_top->GetData();
+    delete m_top; //delete the only node in the stack
+    m_top = nullptr;
+    m_size = 0; //size will be 0 as the stack is empty now
+    return data;
+  }
+  Node<T>* prev = m_top;
+  Node<T>* temp = m_top->GetNext();
+  while (temp->GetNext() != nullptr){ //iterate unitl bottom node of the stack
+    prev = temp;
+    temp = temp->GetNext();
+  }
+  data = temp->GetData(); //store last node data
+  delete temp; //delete the last node
+  prev->SetNext(nullptr); //set the second-to-last (new bottm node) ptr to nullptr
+  m_size--; //decrement size
+  return data;
+}
 
 // Name: Display
 // Description: If stack is empty, outputs that the stack is empty
@@ -310,11 +347,23 @@ T Stack<T>::RemoveBottom(){}
 // Preconditions: Stack has at least one node
 // Postconditions: Displays data from each node in stack
 template <typename T>
-void Stack<T>::Display(){}
+void Stack<T>::Display(){
+  if (IsEmpty()) //if the stack is empty
+    cout << "the stack is empty" << endl;
+  else{
+    Node<T>* temp = m_top;
+    int i = 1; //for printing node numbers in a list format
+    while(temp != nullptr){
+      cout << i << ". " << temp->GetData() << endl; //display the data of the node
+      temp = temp->GetNext(); //move down the stack one
+      i++;
+    }
+  }
+}
 
 // Name: GetSize
 // Description: Returns the number of nodes in the stack
 // Preconditions: None
 // Postconditions: Returns the number of nodes in the stack.
 template <typename T>
-size_t Stack<T>::GetSize() const{}
+size_t Stack<T>::GetSize() const{return m_size;}
