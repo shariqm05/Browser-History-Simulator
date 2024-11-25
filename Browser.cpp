@@ -93,7 +93,14 @@ void Browser::Menu(){
 //              m_currentPage to new NE
 // Preconditions: None
 // Postconditions: Adds things to m_backStack or m_currentPage
-void Browser::Visit(const string& url, int timestamp){}
+void Browser::Visit(const string& url, int timestamp){
+    if (m_currentPage == nullptr){ //if current page is empty
+        m_currentPage = new NavigationEntry(url, timestamp);
+    } else{ 
+        m_backStack.Push(m_currentPage); //put the current page in backstack
+        m_currentPage = new NavigationEntry(url,timestamp);
+    }
+}
 
 // Name: NewVisit
 // Description: User enters the URL of the site visited and populates the
@@ -103,13 +110,47 @@ void Browser::Visit(const string& url, int timestamp){}
 //              int64_t timestamp = static_cast<int64_t>(nowAsTimeT);
 // Preconditions: None
 // Postconditions: Adds new URL to m_backStack or m_currentPage
-void Browser::NewVisit(){}
+void Browser::NewVisit(){
+    cout << "Enter the URL of the new site:" << endl;
+    //user input url
+    string input;
+    cin >> input;
+    //make a new timestamp of current system time by using provided code
+    auto now = chrono::system_clock::now();
+    time_t nowAsTimeT = std::chrono::system_clock::to_time_t(now);
+    int64_t timestamp = static_cast<int64_t>(nowAsTimeT);
+    //set the new current page (reference Visit)
+    if (m_currentPage == nullptr){ //if no current page exists
+        m_currentPage = new NavigationEntry(input, timestamp);
+    }
+    else{ 
+        m_backStack.Push(m_currentPage); 
+        m_currentPage = new NavigationEntry(input, timestamp);
+    }
+}
 
 // Name: Display
 // Description: Display all of then entires in the back stack and front stack
 // Preconditions: None
 // Postconditions: None
-void Browser::Display(){}
+void Browser::Display(){
+    //Back Stack Display
+    cout << "**Back Stack**" << endl;
+    m_backStack.Display();
+    cout << endl;
+    //Forward Stack Display
+    cout << "**Forward Stack**" << endl;
+    m_forwardStack.Display();
+    cout << endl;
+    //Current Website (use NavEntry overloaded <<)
+    if(m_currentPage == nullptr){
+        cout << "No current page" << endl;
+    }
+    else{
+        cout << *m_currentPage << endl;
+    }
+    cout << endl;
+}
 
 // Name: Back (steps)
 // Description: Moves item from m_currentPage to m_forwardStack
@@ -118,7 +159,18 @@ void Browser::Display(){}
 //              While can do more than one step, normally only moves one.
 // Preconditions: m_backStack must not be empty.
 // Postconditions: Rotates items as above
-NavigationEntry Browser::Back(int steps){}
+NavigationEntry Browser::Back(int steps){
+    if (m_backStack.IsEmpty()){ // do nothing if backstack is empty
+        return *m_currentPage;
+    }
+    for (int i = 0; i < steps; i++){
+        //set current page into forward stack
+        m_forwardStack.Push(m_currentPage);
+        //set previous page as current
+        m_currentPage = m_backStack.Pop();
+    }
+    return *m_currentPage;
+}
 
 // Name: Forward (steps)
 // Description: Moves item from m_backStack to m_currentPage
@@ -127,16 +179,52 @@ NavigationEntry Browser::Back(int steps){}
 //              While can do more than one step, normally only moves one.
 // Preconditions: m_forwardStack must not be empty
 // Postconditions: Rotates items as above
-NavigationEntry Browser::Forward(int steps){}
+NavigationEntry Browser::Forward(int steps){
+    if (m_forwardStack.IsEmpty()){ // do nothing if forwardstack is empty
+        return *m_currentPage;
+    }
+    for (int i = 0; i < steps; i++){
+        //set current page into back stack
+        m_backStack.Push(m_currentPage);
+        //set forward page as current
+        m_currentPage = m_forwardStack.Pop();
+    }
+    return *m_currentPage;
+}
 
 // Name: GetCurrentPage
 // Description: Returns the current page
 // Preconditions: None
 // Postconditions: None
-NavigationEntry Browser::GetCurrentPage() const{}
+NavigationEntry Browser::GetCurrentPage() const{
+    if (m_currentPage == nullptr){ //if its nullptr
+        throw runtime_error("No current page exists");
+    }
+    return *m_currentPage;
+}
 
 // Name: LoadFile
 // Description: Loads the file using Visit
 // Preconditions: None
 // Postconditions: Adds things to m_backStack or m_currentPage
-void Browser::LoadFile(){}
+void Browser::LoadFile(){
+    ifstream file(m_fileName); 
+    //opening and processing areas
+    if (file.is_open()){
+        //variables for one NavEntry
+        string url, timestampStr;
+        while(getline(file, url, DELIMITER) &&
+            getline(file, timestampStr, DELIMITER)){
+            //convert all timestamp variable using stoi
+            int timestamp = stoi(timestampStr);
+            if (m_currentPage == nullptr){ // for first NavEntry
+                m_currentPage = new NavigationEntry(url, timestamp);
+            }
+            else{ //push current page into back stack and set current page
+                m_backStack.Push(m_currentPage);
+                m_currentPage = new NavigationEntry(url, timestamp);
+            }
+        }
+    }
+    file.close(); 
+}
